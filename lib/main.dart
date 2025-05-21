@@ -1,37 +1,74 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(CalculatorApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class CalculatorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Counter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: CounterPage(),
+      title: 'Simple Calculator',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: CalculatorPage(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class CounterPage extends StatefulWidget {
-  const CounterPage({super.key});
-
+class CalculatorPage extends StatefulWidget {
   @override
-  _CounterPageState createState() => _CounterPageState();
+  _CalculatorPageState createState() => _CalculatorPageState();
 }
 
-class _CounterPageState extends State<CounterPage> {
-  int _counter = 0;
+class _CalculatorPageState extends State<CalculatorPage> {
+  final TextEditingController _num1Controller = TextEditingController();
+  final TextEditingController _num2Controller = TextEditingController();
 
-  void _incrementCounter() {
+  double? _result;
+  String _operation = '';
+
+  void _calculate(String operator) {
+    final double? num1 = double.tryParse(_num1Controller.text);
+    final double? num2 = double.tryParse(_num2Controller.text);
+
+    if (num1 == null || num2 == null) {
+      setState(() {
+        _result = null;
+        _operation = 'Invalid input';
+      });
+      return;
+    }
+
+    double res;
+
+    switch (operator) {
+      case '+':
+        res = num1 + num2;
+        break;
+      case '-':
+        res = num1 - num2;
+        break;
+      case '*':
+        res = num1 * num2;
+        break;
+      case '/':
+        if (num2 == 0) {
+          setState(() {
+            _operation = 'Cannot divide by zero';
+            _result = null;
+          });
+          return;
+        }
+        res = num1 / num2;
+        break;
+      default:
+        res = 0;
+    }
+
     setState(() {
-      _counter++; // Increase counter value
+      _result = res;
+      _operation = operator;
     });
   }
 
@@ -39,24 +76,56 @@ class _CounterPageState extends State<CounterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Simple Counter App'),
+        title: Text('Simple Calculator'),
+        centerTitle: true,
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+          children: [
+            TextField(
+              controller: _num1Controller,
+              decoration: InputDecoration(labelText: 'First Number'),
+              keyboardType: TextInputType.number,
             ),
+            SizedBox(height: 10),
+            TextField(
+              controller: _num2Controller,
+              decoration: InputDecoration(labelText: 'Second Number'),
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 20),
+            Wrap(
+              spacing: 10,
+              children: [
+                ElevatedButton(
+                  onPressed: () => _calculate('+'),
+                  child: Text('+'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _calculate('-'),
+                  child: Text('-'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _calculate('*'),
+                  child: Text('*'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _calculate('/'),
+                  child: Text('/'),
+                ),
+              ],
+            ),
+            SizedBox(height: 30),
+            if (_result != null || _operation.isNotEmpty)
+              Text(
+                _result != null
+                    ? 'Result: $_result'
+                    : _operation,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
       ),
     );
   }
